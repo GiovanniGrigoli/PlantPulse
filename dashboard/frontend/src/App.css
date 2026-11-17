@@ -1,0 +1,224 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7f5;
+  color: #24352b;
+}
+
+button {
+  font: inherit;
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background: #183c2b;
+  color: white;
+  padding: 28px 18px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 55px;
+}
+
+.brand h2 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.brand-icon {
+  font-size: 28px;
+}
+
+.menu-label {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  color: #a9c3b2;
+  margin-bottom: 15px;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  color: #dce9df;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: #2d6245;
+  color: white;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 30px;
+  color: #a9c3b2;
+  font-size: 12px;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-content {
+  padding: 40px;
+  max-width: 1500px;
+  margin: auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 30px;
+}
+
+.page-header p,
+.welcome-section p {
+  color: #718078;
+}
+
+.device-indicator {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  background: #2ca66a;
+  border-radius: 50%;
+}
+
+.welcome-section {
+  margin-top: 45px;
+  margin-bottom: 25px;
+}
+
+.welcome-section h2 {
+  font-size: 21px;
+}
+
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.sensor-card {
+  background: white;
+  padding: 25px;
+  border-radius: 13px;
+  border: 1px solid #e7eee9;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
+}
+
+.sensor-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sensor-icon {
+  font-size: 25px;
+}
+
+.sensor-description {
+  font-size: 12px;
+  color: #87958c;
+}
+
+.sensor-card h3 {
+  font-size: 15px;
+  color: #65746b;
+  font-weight: normal;
+  margin-top: 22px;
+}
+
+.sensor-value {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.sensor-value span {
+  font-size: 16px;
+  color: #718078;
+  font-weight: normal;
+}
+
+@media (max-width: 750px) {
+  .sidebar {
+    width: 75px;
+    padding: 20px 10px;
+  }
+
+  .brand h2,
+  .menu-label,
+  .nav-item:not(.active) {
+    font-size: 0;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .nav-item {
+    justify-content: center;
+  }
+
+  .sidebar-footer {
+    display: none;
+  }
+
+  .dashboard-content {
+    padding: 22px;
+  }
+
+  .sensor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
