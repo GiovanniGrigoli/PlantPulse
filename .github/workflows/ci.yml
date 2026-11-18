@@ -1,0 +1,125 @@
+
+name: PlantPulse CI
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  # -------------------------------
+  # BACKEND - Python
+  # -------------------------------
+  backend-check:
+    name: Backend checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: dashboard/backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r dashboard/backend/requirements.txt
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall -q dashboard/backend/app
+
+
+  # -------------------------------
+  # FRONTEND - React
+  # -------------------------------
+  frontend-check:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: dashboard/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: dashboard/frontend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: dashboard/frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: dashboard/frontend
+        run: npm run build
+
+
+  # -------------------------------
+  # HARDWARE - C++
+  # -------------------------------
+  hardware-check:
+    name: Hardware compilation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install C++ dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libcurl4-openssl-dev \
+            nlohmann-json3-dev
+
+      - name: Compile hardware simulator
+        run: |
+          g++ -std=c++17 -Wall -Wextra -pedantic \
+            hardware/main.cpp \
+            -o /tmp/plantpulse \
+            $(pkg-config --cflags --libs libcurl)
+
+
+  # -------------------------------
+  # DOCKER - Configuration
+  # -------------------------------
+  docker-check:
+    name: Docker configuration
+    runs-on: ubuntu-latest
+
+    env:
+      POSTGRES_DB: plantpulse
+      POSTGRES_USER: plantpulse
+      POSTGRES_PASSWORD: ci-test-password
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Validate Docker Compose
+        run: |
+          docker compose -f dashboard/docker-compose.yml config --quiet
