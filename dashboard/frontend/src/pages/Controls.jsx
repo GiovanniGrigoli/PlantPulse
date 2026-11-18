@@ -71,14 +71,38 @@ function Controls() {
 
   // Aggiornamento automatico ogni 5 secondi
   useEffect(() => {
-    loadCommandHistory();
+    let cancelled = false;
 
-    const interval = setInterval(() => {
-      loadCommandHistory();
-    }, 5000);
+    const refreshCommandHistory = () => {
+      getDeviceCommandHistory(deviceId, 20)
+        .then((data) => {
+          if (cancelled) return;
 
-    return () => clearInterval(interval);
+          setCommands(data);
+          setHistoryError(null);
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            setHistoryError(error.message);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setHistoryLoading(false);
+          }
+        });
+    };
+
+    refreshCommandHistory();
+
+    const interval = setInterval(refreshCommandHistory, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
+
 
   function handleChange(key, value) {
     setValues((previous) => ({

@@ -19,31 +19,70 @@ function Statistics() {
   const [error, setError] = useState(null);
   const [historyLimit, setHistoryLimit] = useState(10);
 
-  async function loadHistory() {
-    try {
-      const data = await getMeasurementHistory(historyLimit);
+  // async function loadHistory() {
+  //   try {
+  //     const data = await getMeasurementHistory(historyLimit);
 
-      // Ordiniamo le misurazioni dalla più vecchia alla più recente.
-      const orderedData = [...data].sort(
-        (a, b) => new Date(a.measured_at) - new Date(b.measured_at)
-      );
+  //     // Ordiniamo le misurazioni dalla più vecchia alla più recente.
+  //     const orderedData = [...data].sort(
+  //       (a, b) => new Date(a.measured_at) - new Date(b.measured_at)
+  //     );
 
-      setMeasurements(orderedData);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  //     setMeasurements(orderedData);
+  //     setError(null);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   loadHistory();
+
+  //   const interval = setInterval(loadHistory, 5000);
+
+  //   return () => clearInterval(interval);
+  // }, [historyLimit]);
 
   useEffect(() => {
-    loadHistory();
+    let cancelled = false;
 
-    const interval = setInterval(loadHistory, 5000);
+    const refreshHistory = () => {
+      getMeasurementHistory(historyLimit)
+        .then((data) => {
+          if (cancelled) return;
 
-    return () => clearInterval(interval);
+          // Ordiniamo le misurazioni dalla più vecchia alla più recente.
+          const orderedData = [...data].sort(
+            (a, b) => new Date(a.measured_at) - new Date(b.measured_at)
+          );
+
+          setMeasurements(orderedData);
+          setError(null);
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setError(err.message);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false);
+          }
+        });
+    };
+
+    refreshHistory();
+
+    const interval = setInterval(refreshHistory, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [historyLimit]);
+
 
   const sensorOptions = {
     soil_moisture: {

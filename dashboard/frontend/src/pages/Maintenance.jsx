@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   getDeviceSettings,
@@ -22,8 +22,10 @@ function Maintenance() {
   const [message, setMessage] = useState(null);
 
   // Recupera la configurazione dal database
-  async function loadSettings() {
+  const loadSettings = useCallback(async () => {
     try {
+      setLoading(true);
+
       const data = await getDeviceSettings(deviceId);
 
       setSettings(data);
@@ -47,29 +49,37 @@ function Maintenance() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [deviceId]);
 
   // Recupera lo stato del dispositivo
-  async function loadDeviceStatus() {
+  const loadDeviceStatus = useCallback(async () => {
     try {
       const data = await getDeviceStatus(deviceId);
       setDeviceStatus(data);
     } catch (err) {
       console.error("Errore nel recupero dello stato:", err);
     }
-  }
+  }, [deviceId]);
 
   // Caricamento iniziale e aggiornamento diagnostica
   useEffect(() => {
-    loadSettings();
-    loadDeviceStatus();
+    // Differiamo il caricamento iniziale per evitare
+    // aggiornamenti sincroni di stato direttamente nell'effetto.
+    const initialLoad = setTimeout(() => {
+      loadSettings();
+      loadDeviceStatus();
+    }, 0);
 
+    // Aggiorna lo stato del dispositivo ogni 5 secondi
     const interval = setInterval(() => {
       loadDeviceStatus();
     }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
+  }, [loadSettings, loadDeviceStatus]);
 
   // Aggiorna un singolo campo del modulo
   function handleChange(key, value) {
@@ -174,7 +184,6 @@ function Maintenance() {
           text: "Configurazione salvata correttamente.",
         });
       }
-
     } catch (err) {
       setMessage({
         type: "error",
