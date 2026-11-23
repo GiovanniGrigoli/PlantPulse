@@ -1,0 +1,13 @@
+\chapter{GitHub Container Registry}
+
+GitHub Container Registry (GHCR) conserva le immagini Docker generate dalla pipeline. I pacchetti appartengono al namespace \texttt{giovannigrigoli}, coerente con il proprietario del repository.
+
+Le immagini pubblicate sono:
+\begin{itemize}
+    \item \texttt{ghcr.io/giovannigrigoli/plantpulse-backend}
+    \item \texttt{ghcr.io/giovannigrigoli/plantpulse-frontend}
+\end{itemize}
+
+Per entrambe vengono generati due tag: \texttt{latest} e \texttt{sha-<commit>}. Il primo identifica l'ultima versione pubblicata; il secondo permette di riferirsi a una build associata a uno specifico commit.
+
+Se i pacchetti sono privati, per scaricarli è necessario autenticarsi con un token che disponga del permesso \texttt{read:packages}. La pubblicazione usa il token \texttt{GITHUB\_TOKEN} fornito da GitHub Actions con permesso \texttt{packages: write}.

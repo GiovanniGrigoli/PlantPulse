@@ -1,0 +1,14 @@
+\chapter{Docker e Docker Compose}
+
+Docker viene utilizzato per eseguire PostgreSQL, backend e frontend in container. Sono presenti due configurazioni Compose.
+
+\section{Configurazione di sviluppo}
+\texttt{dashboard/docker-compose.yml} costruisce le immagini backend e frontend a partire dai rispettivi Dockerfile e avvia PostgreSQL 17. Il backend attende che il database superi il controllo di salute; il frontend attende che il backend sia healthy.
+
+\section{Configurazione con immagini pubblicate}
+\texttt{dashboard/docker-compose.prod.yml} utilizza le immagini backend e frontend già pubblicate su GHCR, mentre PostgreSQL viene avviato dall'immagine ufficiale \texttt{postgres:17}. In questo progetto la configurazione è utilizzata per verificare localmente le immagini pubblicate: non rappresenta un deployment su un server remoto.
+
+\section{Persistenza e porte}
+I dati PostgreSQL sono conservati nel volume nominato \texttt{plantpulse\_db\_data}. Le porte host configurate sono 5432 per PostgreSQL, 8000 per FastAPI e 8080 per il frontend. Database e backend sono associati a loopback; nel file Compose attuale la porta frontend è dichiarata come \texttt{8080:80}. Per limitare anche il frontend al solo host, usare \texttt{127.0.0.1:8080:80}.
+
+Non usare \texttt{docker compose down -v} quando si desidera conservare il database, perché elimina i volumi associati.

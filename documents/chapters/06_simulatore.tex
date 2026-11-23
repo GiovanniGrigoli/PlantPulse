@@ -1,0 +1,14 @@
+\chapter{Simulatore hardware C++}
+
+Il file \texttt{hardware/main.cpp} implementa la classe \texttt{PlantPulseDevice} e il ciclo principale del simulatore.
+
+\section{Misurazioni}
+Il dispositivo simula quattro parametri: umidità del terreno, luminosità, temperatura dell'aria e umidità dell'aria. I valori iniziali sono impostati nel codice e vengono modificati gradualmente con piccole variazioni casuali; i valori sono limitati a intervalli plausibili definiti nel simulatore.
+
+Il metodo che prepara la misurazione costruisce un JSON con \texttt{device\_id}, timestamp UTC e valori numerici. La funzione di invio utilizza libcurl per effettuare una POST verso \texttt{http://127.0.0.1:8000/measurements}.
+
+\section{Gestione dei comandi}
+Il simulatore recupera i comandi pendenti tramite l'endpoint dedicato. Sono gestiti i comandi per impostare l'intervallo di misurazione e i quattro parametri ambientali. Dopo l'applicazione, il simulatore invia un acknowledgement con l'esito.
+
+\section{Ciclo operativo}
+Il ciclo principale aggiorna i valori simulati, controlla i comandi e invia le misurazioni secondo l'intervallo configurato. L'intervallo iniziale è di due secondi. Il programma resta attivo fino all'interruzione del processo.

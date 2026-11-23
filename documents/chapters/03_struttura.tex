@@ -1,0 +1,42 @@
+\chapter{Struttura delle directory}
+
+La struttura principale del repository è la seguente:
+
+\begin{lstlisting}
+PlantPulse/
+|-- .github/workflows/ci.yml
+|-- dashboard/
+|   |-- backend/
+|   |   |-- app/
+|   |   |   |-- main.py
+|   |   |   |-- database.py
+|   |   |   |-- models.py
+|   |   |   |-- schemas.py
+|   |   |   `-- logging_config.py
+|   |   |-- sql/init.sql
+|   |   |-- tests/
+|   |   `-- Dockerfile
+|   |-- frontend/
+|   |   |-- src/components/
+|   |   |-- src/pages/
+|   |   |-- src/services/api.js
+|   |   |-- Dockerfile
+|   |   `-- nginx.conf
+|   |-- docker-compose.yml
+|   `-- docker-compose.prod.yml
+|-- hardware/main.cpp
+|-- .gitignore
+`-- README.md
+\end{lstlisting}
+
+\section{Responsabilità dei file principali}
+\begin{itemize}
+    \item \texttt{main.py}: definizione delle route FastAPI e logica applicativa degli endpoint.
+    \item \texttt{database.py}: caricamento della configurazione, engine SQLAlchemy e sessioni.
+    \item \texttt{models.py}: modelli ORM delle tre tabelle.
+    \item \texttt{schemas.py}: validazione e serializzazione dei dati con Pydantic.
+    \item \texttt{init.sql}: schema iniziale PostgreSQL, vincoli, indice e configurazione iniziale del dispositivo.
+    \item \texttt{hardware/main.cpp}: simulazione, invio misurazioni, recupero comandi e acknowledgement.
+    \item \texttt{frontend/src/services/api.js}: funzioni client per le chiamate HTTP.
+    \item \texttt{ci.yml}: pipeline di verifica e pubblicazione delle immagini.
+\end{itemize}

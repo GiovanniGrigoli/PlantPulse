@@ -1,0 +1,54 @@
+\documentclass[11pt,a4paper,oneside]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{graphicx}
+
+\geometry{margin=2.5cm}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    urlcolor=blue!60!black,
+    pdftitle={PlantPulse - Documentazione tecnica},
+    pdfauthor={PlantPulse}
+}
+\setlist{nosep}
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible
+}
+
+\title{\textbf{PlantPulse}\\Documentazione tecnica}
+\author{Progetto personale}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\input{chapters/01_introduzione}
+\input{chapters/02_architettura}
+\input{chapters/03_struttura}
+\input{chapters/04_tecnologie}
+\input{chapters/05_backend_database}
+\input{chapters/06_simulatore}
+\input{chapters/07_frontend}
+\input{chapters/08_docker}
+\input{chapters/09_git_github}
+\input{chapters/10_pipeline}
+\input{chapters/11_ghcr}
+\input{chapters/12_procedure}
+\input{chapters/13_limiti_sviluppi}
+
+\end{document}

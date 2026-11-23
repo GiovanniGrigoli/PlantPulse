@@ -1,0 +1,34 @@
+\chapter{Backend e database}
+
+\section{Backend}
+Il backend è sviluppato in Python con FastAPI. Gli endpoint sono organizzati in \texttt{dashboard/backend/app/main.py}. Pydantic valida i payload in ingresso e definisce i modelli di risposta. SQLAlchemy gestisce la persistenza tramite il driver Psycopg.
+
+Le route principali sono:
+\begin{longtable}{p{0.18\textwidth}p{0.48\textwidth}p{0.25\textwidth}}
+\toprule
+\textbf{Metodo} & \textbf{Endpoint} & \textbf{Scopo}\\
+\midrule
+GET & \texttt{/} & Stato API\\
+POST & \texttt{/measurements} & Inserimento misurazione\\
+GET & \texttt{/measurements/latest} & Ultima misurazione\\
+GET & \texttt{/measurements/history} & Storico\\
+GET / PUT & \texttt{/settings} & Lettura e aggiornamento configurazione\\
+GET & \texttt{/devices/\{id\}/status} & Stato e diagnostica dispositivo\\
+POST & \texttt{/devices/\{id\}/commands} & Creazione comando\\
+GET & \texttt{/devices/\{id\}/commands/pending} & Comandi da eseguire\\
+GET & \texttt{/devices/\{id\}/commands} & Cronologia comandi\\
+POST & \texttt{/commands/\{id\}/ack} & Conferma esito comando\\
+\bottomrule
+\end{longtable}
+
+Il backend registra inoltre log strutturati delle richieste HTTP tramite il modulo di logging dedicato.
+
+\section{Database}
+PostgreSQL 17 contiene tre tabelle:
+\begin{itemize}
+    \item \texttt{measurements}: timestamp, device ID e quattro misurazioni;
+    \item \texttt{device\_settings}: intervallo di acquisizione e soglie minime/massime;
+    \item \texttt{device\_commands}: comando, payload JSONB, stato, date ed eventuale errore.
+\end{itemize}
+
+Lo schema è definito in \texttt{sql/init.sql}. Sono presenti chiavi primarie, unicità del device ID nelle impostazioni, chiave esterna dei comandi, vincoli CHECK sui valori e sugli stati, oltre a un indice parziale per i comandi pendenti. Il volume Docker mantiene i dati tra i riavvii.

@@ -1,0 +1,16 @@
+\chapter{Pipeline CI/CD}
+
+La pipeline è definita in \texttt{.github/workflows/ci.yml} e si chiama \texttt{PlantPulse CI}. Si attiva su push verso \texttt{main}, pull request verso \texttt{main} e avvio manuale.
+
+\section{Job di verifica}
+\begin{enumerate}
+    \item \texttt{backend-check}: prepara Python 3.12, installa le dipendenze di sviluppo, avvia PostgreSQL come service, controlla la sintassi Python e lancia pytest.
+    \item \texttt{frontend-check}: prepara Node.js 24, esegue \texttt{npm ci}, ESLint e \texttt{npm run build}.
+    \item \texttt{hardware-check}: installa compilatore e dipendenze native, quindi compila il simulatore C++17.
+    \item \texttt{docker-check}: valida la configurazione del Compose di sviluppo tramite \texttt{docker compose config --quiet}.
+\end{enumerate}
+
+\section{Job di pubblicazione}
+Il job \texttt{docker-publish} dipende dal superamento di tutti i job di verifica. Viene eseguito solo per push su \texttt{main} o avvio manuale sul branch principale. Effettua il login a GHCR tramite il token GitHub Actions, configura Buildx e costruisce le immagini backend e frontend.
+
+La pipeline automatizza controlli e pubblicazione delle immagini. Non avvia i container su un server esterno e non effettua un deployment remoto.

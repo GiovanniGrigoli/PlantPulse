@@ -1,0 +1,18 @@
+\chapter{Architettura e flusso dei dati}
+
+L'architettura è suddivisa in simulatore, backend, database e frontend. I componenti comunicano tramite HTTP; i payload applicativi sono espressi in JSON.
+
+\section{Componenti}
+\begin{description}
+    \item[Simulatore C++] genera le misurazioni e interroga il backend per recuperare comandi pendenti.
+    \item[Backend FastAPI] espone API REST, valida i dati e coordina l'accesso al database.
+    \item[PostgreSQL] conserva i dati in modo persistente.
+    \item[Frontend React] visualizza misurazioni e stato e invia richieste di gestione.
+    \item[Nginx] nella configurazione containerizzata serve i file statici del frontend e inoltra le richieste \texttt{/api/} al backend.
+\end{description}
+
+\section{Flusso delle misurazioni}
+Il simulatore crea un oggetto JSON con identificativo, timestamp e quattro parametri ambientali. Invia il payload con una richiesta HTTP POST a \texttt{/measurements}. FastAPI valida il contenuto tramite gli schemi Pydantic e lo salva in PostgreSQL usando SQLAlchemy. Il frontend recupera i dati attraverso gli endpoint REST.
+
+\section{Flusso dei comandi}
+Il frontend invia un comando al backend. Il backend lo registra con stato \texttt{pending}. Il simulatore interroga l'endpoint dei comandi in attesa, applica il comando e invia un acknowledgement con stato \texttt{executed} oppure \texttt{failed}. L'esito viene conservato nella cronologia.

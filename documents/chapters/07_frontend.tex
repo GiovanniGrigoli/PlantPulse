@@ -1,0 +1,16 @@
+\chapter{Frontend e funzionalità}
+
+Il frontend è sviluppato con React 19 e JavaScript. Vite gestisce l'ambiente di sviluppo e la build. Le chiamate HTTP sono centralizzate in \texttt{src/services/api.js}; l'interfaccia è suddivisa in pagine e componenti riutilizzabili.
+
+\section{Pagine}
+\begin{description}
+    \item[Dashboard] mostra le ultime misurazioni e lo stato del dispositivo, aggiornandoli periodicamente.
+    \item[Statistics] recupera lo storico, permette di selezionare il sensore e il numero di campioni e presenta grafico e statistiche descrittive.
+    \item[Controls] invia comandi per modificare i parametri ambientali e mostra la cronologia e lo stato dei comandi.
+    \item[Maintenance] mostra diagnostica, intervallo corrente e numero di misurazioni; consente di aggiornare intervallo e soglie ambientali.
+\end{description}
+
+\section{Comunicazione}
+Il client utilizza il prefisso \texttt{/api}. Nella configurazione Docker, Nginx inoltra le richieste \texttt{/api/} al servizio backend. In sviluppo, Vite è configurato per instradare le richieste al backend locale.
+
+Le soglie di manutenzione vengono salvate e validate, ma non costituiscono un sistema di allarme: non sono implementate notifiche automatiche al superamento dei limiti.

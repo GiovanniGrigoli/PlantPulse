@@ -1,0 +1,23 @@
+\chapter{Tecnologie e strumenti utilizzati}
+
+Questo capitolo raccoglie in un unico punto i linguaggi, i framework, i database, i software e i servizi impiegati nel progetto.
+
+\begin{longtable}{p{0.25\textwidth}p{0.68\textwidth}}
+\toprule
+\textbf{Area} & \textbf{Tecnologie e strumenti}\\
+\midrule
+Linguaggi & C++17, Python, JavaScript, SQL, HTML, CSS, YAML e Bash.\\
+Simulatore & C++17, libcurl per le richieste HTTP, nlohmann/json per la gestione JSON.\\
+Backend & Python 3.12, FastAPI, Uvicorn, Pydantic, SQLAlchemy, Psycopg e python-dotenv.\\
+Database & PostgreSQL 17; script SQL per schema, vincoli, indice e dati iniziali.\\
+Frontend & React 19, Vite 8 e Recharts per i grafici.\\
+Web server & Nginx, utilizzato per servire il frontend compilato e fare da reverse proxy verso FastAPI.\\
+Container & Docker Engine, Docker Compose e Dockerfile multi-stage per il frontend.\\
+Versionamento & Git e GitHub.\\
+CI/CD e registry & GitHub Actions e GitHub Container Registry (GHCR).\\
+Test e qualità & pytest, HTTPX, ESLint, compilatore g++ e validazione della configurazione Compose.\\
+Ambiente di sviluppo & Windows con WSL2/Ubuntu e Visual Studio Code.\\
+\bottomrule
+\end{longtable}
+
+Le versioni principali dichiarate nella configurazione sono PostgreSQL 17, Python 3.12, Node.js 24, React 19 e C++17. Le dipendenze JavaScript e Python sono elencate rispettivamente in \texttt{package.json} e nei file \texttt{requirements*.txt}.

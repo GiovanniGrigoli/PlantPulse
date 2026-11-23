@@ -1,0 +1,19 @@
+\chapter{Introduzione e requisiti}
+
+PlantPulse è un progetto personale IoT dedicato al monitoraggio e alla gestione delle condizioni ambientali di una pianta. L'intero sistema viene eseguito localmente su un singolo computer. Il dispositivo fisico è, in questa versione, sostituito da un simulatore scritto in C++.
+
+\section{Obiettivi}
+\begin{itemize}
+    \item simulare l'acquisizione di parametri ambientali;
+    \item trasferire le misurazioni al backend tramite HTTP e JSON;
+    \item conservare misurazioni, impostazioni e comandi in un database relazionale;
+    \item consultare dati correnti e storici tramite una dashboard web;
+    \item inviare comandi al dispositivo simulato e registrarne l'esito;
+    \item containerizzare i servizi e automatizzare controlli e pubblicazione delle immagini.
+\end{itemize}
+
+\section{Requisiti funzionali}
+Il sistema gestisce umidità del terreno, luminosità, temperatura dell'aria e umidità dell'aria. Offre quattro aree applicative: Dashboard, Statistics, Controls e Maintenance. Il dispositivo simulato ha identificativo \texttt{plantpulse\_001}.
+
+\section{Perimetro}
+Il progetto è una dimostrazione didattica e personale. Non comprende, allo stato attuale, sensori fisici, autenticazione utente, hosting pubblico o deployment su un server remoto.

@@ -1,0 +1,52 @@
+\chapter{Procedure operative}
+
+\section{Avvio con immagini GHCR}
+Dalla directory \texttt{dashboard}:
+
+\begin{lstlisting}
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml ps
+\end{lstlisting}
+
+Avviare poi il simulatore C++ dalla root del progetto:
+
+\begin{lstlisting}
+./hardware/plantpulse
+\end{lstlisting}
+
+La dashboard è raggiungibile su \url{http://localhost:8080}; l'API è su \url{http://127.0.0.1:8000} e la documentazione FastAPI su \url{http://127.0.0.1:8000/docs}.
+
+\section{Arresto e riavvio}
+\begin{lstlisting}
+docker compose -f docker-compose.prod.yml stop
+docker compose -f docker-compose.prod.yml start
+\end{lstlisting}
+
+Per ricreare i container mantenendo i dati, è possibile usare \texttt{down} senza \texttt{-v}, seguito da \texttt{up -d}.
+
+\section{Aggiornamento delle immagini}
+Dopo una nuova pubblicazione da GitHub Actions:
+
+\begin{lstlisting}
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+\end{lstlisting}
+
+\section{Controlli rapidi}
+\begin{lstlisting}
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f backend
+curl http://127.0.0.1:8000/
+curl http://127.0.0.1:8000/measurements/latest
+\end{lstlisting}
+
+Per i test backend, dalla directory \texttt{dashboard/backend}, attivare l'ambiente virtuale e lanciare \texttt{pytest -v}. Per il frontend, dalla directory \texttt{dashboard/frontend}, eseguire \texttt{npm ci}, \texttt{npm run lint} e \texttt{npm run build}.
+
+\section{Troubleshooting}
+\begin{itemize}
+    \item Database non pronto: controllare lo stato e i log del container PostgreSQL.
+    \item Errore di connessione backend/database: controllare il file \texttt{dashboard/.env}, le credenziali e il valore \texttt{DB\_HOST=db} nel container backend.
+    \item Dashboard senza dati: verificare che il simulatore sia in esecuzione e che le richieste POST siano accettate.
+    \item Comandi in attesa: verificare che il simulatore stia interrogando l'endpoint dei comandi e consultare la cronologia.
+\end{itemize}
