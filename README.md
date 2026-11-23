@@ -1,458 +1,286 @@
-
 # PlantPulse 🌱
 
-PlantPulse is an IoT-based plant monitoring and management system.
+PlantPulse è un progetto IoT personale per il monitoraggio e la gestione delle condizioni ambientali di una pianta. L'applicazione viene eseguita localmente su un singolo computer: un simulatore C++ riproduce il comportamento del dispositivo, il backend riceve e memorizza le misurazioni e il frontend consente di consultare i dati e inviare comandi.
 
-The project simulates an IoT device that collects environmental measurements and sends them to a backend server. Data is stored in a PostgreSQL database and displayed through a web dashboard, which also allows the user to monitor the device, configure measurement parameters and send commands.
+## Funzionalità
 
-The current implementation runs locally on a single computer. The hardware component is simulated in C++ and communicates with the backend through HTTP requests.
+- Acquisizione simulata di umidità del terreno, luminosità, temperatura e umidità dell'aria.
+- Dashboard con ultime misurazioni e stato del dispositivo.
+- Storico e grafici delle misurazioni.
+- Invio di comandi al dispositivo simulato e consultazione del relativo stato.
+- Configurazione dell'intervallo di misurazione e delle soglie ambientali.
+- Persistenza di misurazioni, configurazioni e comandi in PostgreSQL.
+- Containerizzazione con Docker Compose.
+- Verifiche automatiche e pubblicazione delle immagini Docker tramite GitHub Actions e GHCR.
 
-## Features
+## Architettura e flusso dei dati
 
-- **Environmental monitoring:** collection of soil moisture, light intensity, air temperature and air humidity.
-- **Real-time dashboard:** visualization of the latest measurements and device status.
-- **Historical statistics:** consultation of previously collected measurements.
-- **Device management:** monitoring of device connectivity and configuration.
-- **Remote commands:** sending commands from the dashboard to the simulated device.
-- **Maintenance and configuration:** modification of measurement intervals and environmental thresholds.
-- **Persistent storage:** measurements, settings and commands are stored in PostgreSQL.
+Il sistema è composto da quattro elementi principali:
 
-## Architecture
+1. **Simulatore hardware C++17**: genera valori ambientali, invia misurazioni in formato JSON e interroga il backend per recuperare i comandi in attesa.
+2. **Backend FastAPI**: espone API REST, valida i dati, interagisce con PostgreSQL e gestisce il ciclo di vita dei comandi.
+3. **Database PostgreSQL 17**: conserva misurazioni, impostazioni del dispositivo e comandi.
+4. **Frontend React**: mostra i dati e permette di gestire il dispositivo tramite il backend. Nella configurazione containerizzata, Nginx serve il frontend e inoltra `/api/` al backend.
 
-PlantPulse is composed of three main components:
+Flusso delle misurazioni: `C++ → HTTP/JSON → FastAPI → SQLAlchemy → PostgreSQL → API → React`.
 
-1. **Hardware simulator (C++):** simulates a plant monitoring device, generates environmental measurements and communicates with the backend.
-2. **Backend (Python + FastAPI):** exposes REST API endpoints, processes measurements and commands, and communicates with the database.
-3. **Frontend (React):** provides the web interface used to visualize data and manage the device.
+Flusso dei comandi: `React → FastAPI → PostgreSQL (pending) → simulatore C++ → esecuzione → endpoint di acknowledgement → PostgreSQL`.
 
-PostgreSQL is used as the persistent database, while Docker Compose manages the database container.
+Il dispositivo simulato utilizza l'identificativo `plantpulse_001`.
 
-### Data flow
+## Tecnologie utilizzate
 
-```text
-       C++ IoT Simulator
-              |
-              | HTTP / JSON
-              v
-       FastAPI Backend
-              |
-              | SQLAlchemy
-              v
-       PostgreSQL Database
-              ^
-              |
-       FastAPI Backend
-              ^
-              |
-        React Frontend
-              |
-              v
-       Web Dashboard
-```
-
-The simulator periodically sends measurements to the backend. The backend stores them in PostgreSQL, where they can be retrieved by the frontend.
-
-The frontend can also send commands to the backend. These commands are stored in the database and retrieved by the simulator, which executes them and reports their outcome.
-
-## Tech Stack
-
-| Component | Technologies |
+| Area | Tecnologie |
 |---|---|
-| Hardware simulator | C++17, libcurl, nlohmann/json |
-| Backend | Python, FastAPI, SQLAlchemy |
-| Database | PostgreSQL 17 |
-| Database management | Docker, Docker Compose |
-| Frontend | React 19, JavaScript, Vite |
-| Data visualization | Recharts |
-| Communication | HTTP, REST API, JSON |
+| Simulatore | C++17, libcurl, nlohmann/json |
+| Backend | Python 3.12, FastAPI, Uvicorn, Pydantic, SQLAlchemy, Psycopg, python-dotenv |
+| Database | PostgreSQL 17, SQL |
+| Frontend | JavaScript, React 19, Vite 8, Recharts |
+| Web server / reverse proxy | Nginx |
+| Container | Docker, Docker Compose |
+| Versionamento e CI/CD | Git, GitHub, GitHub Actions |
+| Registry immagini | GitHub Container Registry (GHCR) |
+| Test | pytest, HTTPX, ESLint, build Vite |
+| Ambiente di sviluppo | Linux/Ubuntu su WSL2, Visual Studio Code |
 
-## Project Structure
+## Struttura del repository
 
 ```text
 PlantPulse/
-│
+├── .github/workflows/ci.yml
 ├── dashboard/
-│   │
 │   ├── backend/
 │   │   ├── app/
-│   │   │   ├── __init__.py
 │   │   │   ├── main.py
 │   │   │   ├── database.py
 │   │   │   ├── models.py
-│   │   │   └── schemas.py
-│   │   │
-│   │   ├── sql/
-│   │   │   └── init.sql
-│   │   │
-│   │   └── requirements.txt
-│   │
+│   │   │   ├── schemas.py
+│   │   │   └── logging_config.py
+│   │   ├── sql/init.sql
+│   │   ├── tests/
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── requirements-dev.txt
 │   ├── frontend/
 │   │   ├── src/
 │   │   │   ├── components/
 │   │   │   ├── pages/
-│   │   │   ├── services/
-│   │   │   └── App.jsx
-│   │   │
+│   │   │   └── services/api.js
+│   │   ├── Dockerfile
+│   │   ├── nginx.conf
 │   │   ├── package.json
 │   │   └── package-lock.json
-│   │
-│   ├── .env.example
-│   ├── .gitignore
-│   └── docker-compose.yml
-│
+│   ├── docker-compose.yml
+│   └── docker-compose.prod.yml
 ├── hardware/
 │   └── main.cpp
-│
 ├── .gitignore
 └── README.md
 ```
 
-## Requirements
+## Requisiti
 
-The following software is required to run the project:
+Per lavorare sul progetto da sorgente sono necessari:
 
-- Linux or Windows with WSL2.
-- Python 3.10 or newer.
-- Node.js and npm (a version compatible with Vite 8).
-- Docker Engine and Docker Compose.
+- Linux oppure Windows con WSL2 e una distribuzione Ubuntu.
 - Git.
-- A C++17-compatible compiler.
-- `pkg-config`.
-- libcurl development libraries.
-- nlohmann-json development headers.
+- Docker Engine e Docker Compose.
+- Python 3.12 e `venv`.
+- Node.js 24 e npm.
+- Compilatore C++ compatibile con C++17.
+- `pkg-config`, librerie di sviluppo libcurl e header nlohmann-json.
 
-On Ubuntu or WSL2, the C++ dependencies can be installed with:
+Su Ubuntu/WSL2, le dipendenze C++ si installano con:
 
 ```bash
 sudo apt update
-
-sudo apt install build-essential pkg-config \
-libcurl4-openssl-dev nlohmann-json3-dev
+sudo apt install -y build-essential pkg-config libcurl4-openssl-dev nlohmann-json3-dev
 ```
 
-## Installation and Setup
+## Configurazione iniziale
 
-### 1. Clone the repository
-
-Clone the repository and enter the project directory:
-
-```bash
-git clone https://github.com/GiovanniGrigoli/PlantPulse.git
-
-cd PlantPulse
-```
-
-Replace `<REPOSITORY_URL>` with the URL of the GitHub repository.
-
-### 2. Configure environment variables
-
-Move into the dashboard directory:
+Dalla root del repository:
 
 ```bash
 cd dashboard
-```
-
-Create the environment configuration file:
-
-```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
-
-```bash
-nano .env
-```
-
-Example configuration:
+Il file `dashboard/.env.example` deve contenere un esempio senza credenziali reali:
 
 ```env
 POSTGRES_DB=plantpulse
 POSTGRES_USER=plantpulse
-POSTGRES_PASSWORD=change-this-password
-
-DB_HOST=127.0.0.1
-DB_PORT=5432
+POSTGRES_PASSWORD=change-this-local-password
 ```
 
-Set a secure local password and make sure the credentials match the PostgreSQL user configuration.
+Modificare `POSTGRES_PASSWORD` nel file locale `.env`. **Non committare mai `.env`**: contiene credenziali. Il file `.env.example` è invece un modello privo di segreti e può essere versionato.
 
-**Important:** `.env` contains local credentials and must never be committed to Git.
+> Nota sul pacchetto sorgente consegnato per la documentazione: nello ZIP esaminato non era presente `dashboard/.env.example`, anche se il README precedente lo citava. Prima di aggiornare il repository, aggiungere il file con il contenuto di esempio riportato sopra.
 
-### 3. Start PostgreSQL
+## Avvio locale con build dai sorgenti
 
-From the `dashboard` directory, start the database container:
-
-```bash
-docker compose up -d db
-```
-
-Check that the container is running:
-
-```bash
-docker compose ps
-```
-
-The database is exposed locally on port `5432`.
-
-The PostgreSQL data is stored in a Docker volume named `plantpulse_db_data`, so it persists across container restarts.
-
-If the SQL initialization script is mounted in `docker-compose.yml`, PostgreSQL executes it automatically when initializing an empty database data directory. Initialization scripts are not executed again when an already initialized volume is reused.
-
-### 4. Configure and start the backend
-
-Open a new terminal from the project root and enter the dashboard directory:
+Questa modalità utilizza `dashboard/docker-compose.yml` e costruisce localmente backend e frontend.
 
 ```bash
 cd ~/PlantPulse/dashboard
-```
-
-Create a Python virtual environment:
-
-```bash
-python3 -m venv backend/venv
-```
-
-Activate it:
-
-```bash
-source backend/venv/bin/activate
-```
-
-Install the dependencies:
-
-```bash
-pip install -r backend/requirements.txt
-```
-
-Start the FastAPI development server:
-
-```bash
-fastapi dev backend/app/main.py
-```
-
-The backend is now available at:
-
-- API: http://127.0.0.1:8000
-- Interactive API documentation: http://127.0.0.1:8000/docs
-
-### 5. Configure and start the frontend
-
-Open another terminal and enter the frontend directory:
-
-```bash
-cd ~/PlantPulse/dashboard/frontend
-```
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-The dashboard is available at:
-
-http://localhost:5173
-
-### 6. Compile and start the hardware simulator
-
-Open another terminal from the project root:
-
-```bash
-cd ~/PlantPulse
-```
-
-Compile the C++ simulator:
-
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic \
-hardware/main.cpp -o hardware/plantpulse \
-$(pkg-config --cflags --libs libcurl)
-```
-
-Run the simulator:
-
-```bash
-./hardware/plantpulse
-```
-
-The simulator starts generating environmental measurements and sending them to the backend.
-
-It also periodically checks for pending commands and reports their execution status.
-
-**Note:** The backend must be running before starting the simulator. The simulator currently communicates with `http://127.0.0.1:8000`.
-
-## Running the Project
-
-To use PlantPulse, the following components must be running simultaneously:
-
-| Component | Command | Address |
-|---|---|---|
-| PostgreSQL | `docker compose up -d db` | `127.0.0.1:5432` |
-| Backend | `fastapi dev backend/app/main.py` | `127.0.0.1:8000` |
-| Frontend | `npm run dev` | `localhost:5173` |
-| Hardware simulator | `./hardware/plantpulse` | Local process |
-
-Each component runs independently in its own terminal, except PostgreSQL, which runs inside Docker.
-
-## Dashboard
-
-The web dashboard provides four main sections:
-
-### Dashboard
-
-Displays the latest environmental measurements:
-
-- Soil moisture.
-- Light intensity.
-- Air temperature.
-- Air humidity.
-
-It also provides an overview of the plant monitoring system and device status.
-
-### Statistics
-
-Provides access to historical measurements and graphical representations of environmental data.
-
-### Controls
-
-Allows the user to send commands to the simulated device, modifying its environmental parameters.
-
-The supported commands include:
-
-- Setting soil moisture.
-- Setting light intensity.
-- Setting air temperature.
-- Setting air humidity.
-- Changing the measurement interval.
-
-The command history is also available.
-
-### Maintenance
-
-Provides device diagnostics and configuration management.
-
-The user can monitor device connectivity and modify:
-
-- Measurement interval.
-- Minimum and maximum soil moisture.
-- Minimum and maximum light intensity.
-- Minimum and maximum air temperature.
-- Minimum and maximum air humidity.
-
-## API Endpoints
-
-The backend exposes a REST API implemented with FastAPI.
-
-The main endpoints are:
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/` | API status |
-| POST | `/measurements` | Receive and store a measurement |
-| GET | `/measurements/latest` | Retrieve the latest measurement |
-| GET | `/measurements/history` | Retrieve measurement history |
-| GET | `/settings` | Retrieve device settings |
-| PUT | `/settings` | Update device settings |
-| GET | `/devices/{device_id}/status` | Retrieve device status |
-| POST | `/devices/{device_id}/commands` | Create a device command |
-| GET | `/devices/{device_id}/commands` | Retrieve command history |
-| GET | `/devices/{device_id}/commands/pending` | Retrieve pending commands |
-| POST | `/commands/{command_id}/ack` | Confirm command execution |
-
-Interactive API documentation is available at:
-
-http://127.0.0.1:8000/docs
-
-## Database
-
-PlantPulse uses PostgreSQL to store three main categories of information:
-
-- **Measurements:** environmental data collected by the device, including timestamps and device identifiers.
-- **Device settings:** measurement intervals and environmental thresholds.
-- **Device commands:** commands sent to the device, their payloads and execution status.
-
-The database schema is defined in:
-
-```text
-dashboard/backend/sql/init.sql
-```
-
-## Troubleshooting
-
-### PostgreSQL is not running
-
-Check the container status:
-
-```bash
+docker compose up -d --build
 docker compose ps
 ```
 
-If necessary, start the database again:
+Aprire la dashboard su `http://localhost:8080`. Il backend è disponibile su `http://127.0.0.1:8000` e la documentazione interattiva FastAPI su `http://127.0.0.1:8000/docs`.
+
+Per avviare il simulatore, da un altro terminale:
 
 ```bash
-docker compose up -d db
+cd ~/PlantPulse
+g++ -std=c++17 -Wall -Wextra -pedantic \
+  hardware/main.cpp -o hardware/plantpulse \
+  $(pkg-config --cflags --libs libcurl)
+
+./hardware/plantpulse
 ```
 
-### Backend cannot connect to PostgreSQL
+Il simulatore invia una misurazione ogni intervallo configurato (inizialmente 2 secondi) e controlla periodicamente la presenza di comandi.
 
-Check that:
+## Avvio locale con immagini GHCR
 
-- The PostgreSQL container is running.
-- The `.env` file exists in the `dashboard` directory.
-- The database credentials in `.env` match the PostgreSQL user.
-- The database is accessible on port `5432`.
+Il file `dashboard/docker-compose.prod.yml` utilizza le immagini già pubblicate su GitHub Container Registry:
 
-### Frontend cannot communicate with the backend
+- `ghcr.io/giovannigrigoli/plantpulse-backend:latest`
+- `ghcr.io/giovannigrigoli/plantpulse-frontend:latest`
 
-Make sure the FastAPI server is running on:
+Per scaricare e avviare le immagini:
 
-```text
-http://127.0.0.1:8000
+```bash
+cd ~/PlantPulse/dashboard
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml ps
 ```
 
-Also check the API base URL in:
+Se i pacchetti GHCR sono privati, effettuare prima il login con un Personal Access Token che abbia il permesso `read:packages`:
 
-```text
-dashboard/frontend/src/services/api.js
+```bash
+docker login ghcr.io -u GiovanniGrigoli
 ```
 
-### Hardware simulator cannot send measurements
+Inserire il token quando richiesto; non inserirlo nei file del repository.
 
-Make sure the backend is running before starting the simulator.
+Per arrestare i container:
 
-Check that the simulator is configured to communicate with:
-
-```text
-http://127.0.0.1:8000
+```bash
+docker compose -f docker-compose.prod.yml stop
 ```
 
-Also verify that the required C++ dependencies are installed.
+Per riavviarli:
 
-## Security Notes
+```bash
+docker compose -f docker-compose.prod.yml start
+```
 
-- Never commit `.env` or other files containing credentials.
-- Keep database credentials private.
-- PostgreSQL is bound to `127.0.0.1` in the provided Docker Compose configuration, limiting access to the local machine.
-- The current implementation is intended for local development and experimentation, not production deployment.
+Per ricrearli senza eliminare i dati:
 
-## Future Development
+```bash
+docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml up -d
+```
 
-Possible future improvements include:
+**Non utilizzare `down -v` se si desidera conservare il database**: l'opzione `-v` elimina anche i volumi associati.
 
-- Integration with physical IoT sensors and microcontrollers.
-- Development of an Android application.
-- Deployment on a remote server.
-- Improved authentication and security.
-- Additional monitoring and notification features.
-- Automated testing and CI/CD pipelines.
+## Frontend: sezioni disponibili
+
+- **Dashboard**: mostra le quattro misurazioni più recenti e lo stato del dispositivo.
+- **Statistics**: visualizza lo storico, consente di scegliere il sensore e il numero di misurazioni e presenta grafico, valori minimi, massimi e medi.
+- **Controls**: invia comandi per impostare umidità del terreno, luminosità, temperatura e umidità dell'aria; mostra la cronologia dei comandi e il loro stato.
+- **Maintenance**: mostra diagnostica, ultima comunicazione e numero di misurazioni; permette di modificare intervallo di acquisizione e soglie minime/massime.
+
+Le soglie vengono memorizzate e validate; nel codice esaminato non è presente un sistema di notifiche o allarmi automatici basato sul superamento delle soglie.
+
+## Backend: API principali
+
+La documentazione interattiva è disponibile su `/docs` quando il backend è raggiungibile.
+
+| Metodo | Endpoint | Funzione |
+|---|---|---|
+| GET | `/` | Stato dell'API |
+| POST | `/measurements` | Riceve e salva una misurazione |
+| GET | `/measurements/latest` | Recupera l'ultima misurazione |
+| GET | `/measurements/history` | Recupera lo storico con limite |
+| GET | `/settings` | Legge le impostazioni del dispositivo |
+| PUT | `/settings` | Aggiorna le impostazioni |
+| GET | `/devices/{device_id}/status` | Restituisce stato, ultima comunicazione e conteggio |
+| POST | `/devices/{device_id}/commands` | Crea un comando in stato `pending` |
+| GET | `/devices/{device_id}/commands/pending` | Elenca i comandi in attesa per il simulatore |
+| GET | `/devices/{device_id}/commands` | Legge la cronologia dei comandi |
+| POST | `/commands/{command_id}/ack` | Registra l'esito `executed` o `failed` |
+
+## Database
+
+Lo schema iniziale è definito in `dashboard/backend/sql/init.sql` e comprende:
+
+- `measurements`: misurazioni ambientali con timestamp e identificativo dispositivo;
+- `device_settings`: intervallo di acquisizione e soglie ambientali;
+- `device_commands`: tipo e payload JSONB del comando, stato, date ed eventuale messaggio di errore.
+
+Lo script SQL viene eseguito da PostgreSQL all'inizializzazione di un volume dati vuoto. Non viene rieseguito automaticamente su un volume già inizializzato. Il volume Docker `plantpulse_db_data` conserva i dati tra riavvii e ricreazioni dei container, purché non venga eliminato.
+
+## Test e pipeline CI/CD
+
+La pipeline è definita in `.github/workflows/ci.yml` e viene avviata su push verso `main`, pull request verso `main` e manualmente tramite `workflow_dispatch`.
+
+I job di verifica sono:
+
+1. `backend-check`: installa le dipendenze Python, controlla la sintassi e avvia pytest con un servizio PostgreSQL.
+2. `frontend-check`: installa le dipendenze con `npm ci`, esegue ESLint e la build Vite.
+3. `hardware-check`: installa le dipendenze C++ e compila il simulatore.
+4. `docker-check`: valida la configurazione Docker Compose.
+
+Dopo il superamento dei controlli, il job `docker-publish` pubblica le immagini backend e frontend su GHCR. La pubblicazione è limitata ai push su `main` e agli avvii manuali sul branch `main`; ogni immagine riceve un tag `latest` e un tag identificato dallo SHA del commit.
+
+La pipeline costruisce e pubblica immagini: **non esegue il deployment su un server remoto**. L'esecuzione prevista del progetto resta locale.
+
+## Comandi di verifica e troubleshooting
+
+```bash
+# Stato dei servizi
+docker compose -f dashboard/docker-compose.prod.yml ps
+
+# Log dei servizi
+docker compose -f dashboard/docker-compose.prod.yml logs -f backend
+docker compose -f dashboard/docker-compose.prod.yml logs -f db
+docker compose -f dashboard/docker-compose.prod.yml logs -f frontend
+
+# Verifica API
+curl http://127.0.0.1:8000/
+curl http://127.0.0.1:8000/measurements/latest
+```
+
+Problemi comuni:
+
+- **Database non pronto**: controllare `docker compose ... ps` e i log del servizio `db`.
+- **Backend non raggiunge PostgreSQL**: verificare che `.env` sia presente in `dashboard`, che le credenziali siano corrette e che Compose imposti `DB_HOST=db` per il backend containerizzato.
+- **Dashboard senza dati**: controllare che il simulatore sia avviato e che il backend riceva `POST /measurements`.
+- **Comandi non eseguiti**: verificare che il simulatore sia attivo e consultare la cronologia dei comandi e i log backend.
+
+## Sicurezza e limiti attuali
+
+- Il progetto è pensato per uso personale e locale, non è un servizio pronto per produzione pubblica.
+- Non è implementata autenticazione utente per la dashboard o per le API.
+- Il simulatore è software: non è collegato a sensori fisici.
+- L'identificativo del dispositivo è attualmente configurato nel codice.
+- Le soglie sono configurabili e validate, ma non generano allarmi automatici.
+- Il frontend nel Compose attuale usa la mappatura `8080:80`, che può esporre la porta su tutte le interfacce host. Se si vuole limitare esplicitamente l'accesso al solo computer locale, sostituirla in entrambi i file Compose con `127.0.0.1:8080:80`.
+
+## Possibili sviluppi futuri
+
+- Collegamento a sensori e microcontrollori fisici.
+- Sistema di allarmi basato sulle soglie configurate.
+- Autenticazione e autorizzazione.
+- Gestione di più dispositivi.
+- Applicazione Android.
+- Miglioramento della gestione degli errori e dell'osservabilità.
 
 ---
 
-**PlantPulse** — A simple IoT system for monitoring and managing plant environmental conditions.
+**PlantPulse** — progetto personale IoT per monitoraggio e gestione delle condizioni ambientali di una pianta.
