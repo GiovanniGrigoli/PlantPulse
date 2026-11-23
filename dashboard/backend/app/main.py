@@ -19,6 +19,16 @@ from .schemas import (
     DeviceCommandAcknowledge
 )
 
+
+import logging
+import time
+
+from .logging_config import configure_logging
+
+configure_logging()
+
+logger = logging.getLogger("plantpulse")
+
 app = FastAPI(
     title="PlantPulse API",
     description="Backend del sistema PlantPulse",
@@ -37,6 +47,48 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    start_time = time.perf_counter()
+
+    try:
+        response = await call_next(request)
+
+        duration_ms = round(
+            (time.perf_counter() - start_time) * 1000,
+            2
+        )
+
+        logger.info(
+            "HTTP request completed",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "duration_ms": duration_ms
+            }
+        )
+
+        return response
+
+    except Exception:
+        duration_ms = round(
+            (time.perf_counter() - start_time) * 1000,
+            2
+        )
+
+        logger.exception(
+            "HTTP request failed",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "duration_ms": duration_ms
+            }
+        )
+
+        raise
 
 
 # ==================================================

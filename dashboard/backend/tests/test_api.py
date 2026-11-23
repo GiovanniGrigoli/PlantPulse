@@ -2,6 +2,50 @@
 from datetime import datetime, timezone
 
 
+
+import logging
+
+
+def test_logging_not_found_request(client, caplog):
+    with caplog.at_level(logging.INFO, logger="plantpulse"):
+        response = client.get("/endpoint-inesistente")
+
+    assert response.status_code == 404
+
+    log_records = [
+        record for record in caplog.records
+        if record.name == "plantpulse"
+        and record.getMessage() == "HTTP request completed"
+    ]
+
+    assert any(
+        record.method == "GET"
+        and record.path == "/endpoint-inesistente"
+        and record.status_code == 404
+        for record in log_records
+    )
+
+
+def test_logging_validation_error(client, caplog):
+    with caplog.at_level(logging.INFO, logger="plantpulse"):
+        response = client.post("/measurements", json={})
+
+    assert response.status_code == 422
+
+    log_records = [
+        record for record in caplog.records
+        if record.name == "plantpulse"
+        and record.getMessage() == "HTTP request completed"
+    ]
+
+    assert any(
+        record.method == "POST"
+        and record.path == "/measurements"
+        and record.status_code == 422
+        for record in log_records
+    )
+
+
 def test_home(client):
     response = client.get("/")
 
